@@ -32,6 +32,8 @@ class DNSBot(object):
         self.loopers        = []
         self.channel_log    = os.getcwd() + '/log/logs.db'
         self.logger         = helper.ChannelLogger(self.channel_log)
+        self.loggy          = log
+        self.loggy.msg('set logger')
 
         ## How do we get the bot's attention? Start a line with one
         ## of the following.
@@ -129,7 +131,7 @@ class DNSBot(object):
         f_chans.close()
 
     def do_periodics(self):
-        print "doing periodics cuz the timer came round"
+        self.loggy.msg("periodics!")
         for channel in self.channels:
             ## update list of names
             self._irc.names(channel)
@@ -190,7 +192,7 @@ class DNSBot(object):
         if replyTo in self.channels:
             chan = self.getChannel(replyTo)
             chan.unlurk(user)
-        self.logger.log(user, replyTo, msg)
+        #self.logger.log(user, replyTo, msg)
         self.startTalking(replyTo)
         self.parseMsg(user, replyTo, msg)
 

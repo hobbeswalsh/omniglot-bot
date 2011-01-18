@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# twisted imports
+from twisted.application import service
+from twisted.application import internet
+from twisted.python.log import ILogObserver, FileLogObserver
+from twisted.python.logfile import DailyLogFile
+
+from modules import bot
+
+logfile = DailyLogFile("omni.log", ".")
+
+application = service.Application("bot")
+application.setComponent(ILogObserver, FileLogObserver(logfile).emit)
+
+f = bot.Factory()
+f.protocol = bot.Client
+f.nick = 'omniglotbot'
+
+botService = internet.TCPClient('localhost', 6667, f)
+botService.setServiceParent(application)
