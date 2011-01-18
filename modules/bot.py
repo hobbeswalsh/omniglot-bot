@@ -13,12 +13,10 @@ from twisted.internet import reactor, protocol, threads
 from twisted.python import log, rebuild
 
 from twisted.plugin import getPlugins
-from interfaces import IMessageWatcher
+import interfaces
 
 class Client(irc.IRCClient):
-    """
-    A simple wrapper around irc.IRCClient that will try to stay connected to 
-    the IRC server and 
+    """ A simple wrapper around irc.IRCClient
     """
     
     def __init__(self):
@@ -27,17 +25,16 @@ class Client(irc.IRCClient):
     def connectionMade(self):
         """Called when a connection is made"""
         irc.IRCClient.connectionMade(self)
-        # hand a copy of self to self.brain (so the bot can talk to IRC)
 
     def connectionLost(self, reason):
         """Called when a connection is lost"""
         irc.IRCClient.connectionLost(self, reason)
-        # tell the brain it's disconnected?
 
     ## callbacks for events
     def signedOn(self):
         """Called when bot has succesfully signed on to server."""
         self.setNick(self.factory.getNick())
+        return True
 
     def joined(self, channel, *args):
         """This will get called when the bot joins the channel."""
@@ -51,16 +48,16 @@ class Client(irc.IRCClient):
 
     def irc_RPL_NAMREPLY(self, prefix, reply):
         """This gets called when we get a reply to NAMES"""
-        channel = reply[2]
-        names = reply[3].split()
+        #channel = reply[2]
+        #names = reply[3].split()
 
-    def userJoined(self, user, channel):
-        """Called when a user joins a channel"""
-        self.names(channel)
+    #def userJoined(self, user, channel):
+    #    """Called when a user joins a channel"""
+    #    self.names(channel)
 
-    def userLeft(self, user, channel):
-        """Called when a user leaves a channel"""
-        self.names(channel)
+    #def userLeft(self, user, channel):
+    #    """Called when a user leaves a channel"""
+    #    self.names(channel)
 
     # XXX This does not appear to get called on nick change
     #def userRenamed(self, oldname, newname):
@@ -70,11 +67,9 @@ class Client(irc.IRCClient):
     def left(self, channel):
         """This will get called when the bot leaves a channel."""
 
-    def reload(self):
-        pass
-
-    def privmsg(self, user, replyTo, msg):
-        """This will get called when the bot receives a message."""
+    def action(self, user, channel, action):
+        """This will get called when the bot receives an action."""
+        print "saw an action!"
         mask = None
         if user.count('!') > 0:
             (user, mask) = user.split('!', 1)
@@ -82,13 +77,36 @@ class Client(irc.IRCClient):
         if replyTo == self.nickname:
             replyTo = user
 
-        cmds = getPlugins(IMessageWatcher)
+        cmds = getPlugins(interfaces.ICommandWatcher)
         for cmd in cmds:
             d = threads.deferToThread(cmd.gotMsg, msg)
             d.addCallback(self.emit, replyTo)
 
+    def privmsg(self, user, replyTo, msg):
+        """This will get called when the bot receives a message."""
+        print "saw a message!"
+        mask = None
+        if user.count('!') > 0:
+            (user, mask) = user.split('!', 1)
+
+        if replyTo == self.nickname:
+            replyTo = user
+
+        cmds = getPlugins(interfaces.IMessageWatcher)
+        for cmd in cmds:
+            d = threads.deferToThread(cmd.gotMsg, msg)
+            d.addCallback(self.emit, replyTo)
+
+    def userjoined(self, user, channel, data):
+        """This will get called when a user joins the channel"""
+        print "{0} just joined!".format(user)
+
     def emit(self, msg, dest):
-        self.msg(dest, msg)
+        if msg.startswith('/me '):
+            msg = msg.replace('/me ', '')
+            self.me(dest, msg)
+        else:
+            self.msg(dest, msg)
 
 
     def action(self, user, replyTo, act):
