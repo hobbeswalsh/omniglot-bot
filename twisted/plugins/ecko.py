@@ -6,12 +6,13 @@ from modules.interfaces import *
 
 
 class Echoer(object):
-    implements(IPlugin, IMessageWatcher, IActionWatcher)
+    implements(IPlugin, IMessageWatcher, ICommandWatcher)
 
     def gotMsg(self, msg):
         return msg
+        #return None
     
-    def gotAction(self, action):
-        return "/me {0}".format(cmd)
+    def gotCmd(self, cmd, args):
+        return "okay whatever, I'll {0} {1}".format(cmd, args)
 
 e = Echoer()

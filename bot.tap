@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # twisted imports
-from twisted.application import service
-from twisted.application import internet
+from twisted.application import internet, service
 from twisted.python.log import ILogObserver, FileLogObserver
 from twisted.python.logfile import DailyLogFile
 
@@ -20,3 +19,5 @@ f.nick = 'omniglotbot'
 
 botService = internet.TCPClient('localhost', 6667, f)
 botService.setServiceParent(application)
+f.service = botService
+#f.service = application

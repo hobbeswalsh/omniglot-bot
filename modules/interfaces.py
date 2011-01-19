@@ -16,7 +16,7 @@ class ICommandWatcher(Interface):
 class IActionWatcher(Interface):
     """Watches all actions that come through the bot"""
 
-    def gotAction(action):
+    def gotAction(user, action):
         """We got an action"""
 
 class IIRCWatcher(Interface):
@@ -31,4 +31,5 @@ class IIRCWatcher(Interface):
     def gotNickChange(oldnick, newnick):
         """Someone just changed nicknames"""
 
-
+    def joined(channel):
+        """Called when I join a channel"""
