@@ -4,32 +4,41 @@ from zope.interface import Interface
 class IMessageWatcher(Interface):
     """Watches all messages that come through the bot"""
 
-    def gotMsg(msg):
+    def gotMsg(channel, user, msg, irc=None):
         """We got a message"""
 
 class ICommandWatcher(Interface):
     """Watches all commands that come through the bot"""
 
-    def gotCmd(cmd):
+    def help():
+        """Return a useful help message."""
+
+    def provides():
+        """Return a list of commands we provide"""
+
+    def providesCommand(cmd):
+        """Return True if we know how to provide the given command"""
+
+    def gotCmd(channel, user, cmd, args, irc=None):
         """We got a command"""
 
 class IActionWatcher(Interface):
     """Watches all actions that come through the bot"""
 
-    def gotAction(user, action):
+    def gotAction(channel, user, action, irc=None):
         """We got an action"""
 
 class IIRCWatcher(Interface):
     """Watches all IRC events that come through the bot"""
 
-    def gotPart(user):
+    def gotPart(channel, user, irc=None):
         """Someone just left the channel"""
 
-    def gotJoin(user):
+    def gotJoin(channel, user, irc=None):
         """Someone just joined the channel"""
 
-    def gotNickChange(oldnick, newnick):
+    def gotNickChange(channel, oldnick, newnick, irc=None):
         """Someone just changed nicknames"""
 
-    def joined(channel):
+    def joined(channel, irc=None):
         """Called when I join a channel"""

@@ -3,6 +3,7 @@
 
 # twisted imports
 from twisted.application import internet, service
+from twisted.python import rebuild
 from twisted.python.log import ILogObserver, FileLogObserver
 from twisted.python.logfile import DailyLogFile
 
@@ -13,11 +14,17 @@ logfile = DailyLogFile("omni.log", ".")
 application = service.Application("bot")
 application.setComponent(ILogObserver, FileLogObserver(logfile).emit)
 
-f = bot.Factory()
-f.protocol = bot.Client
-f.nick = 'omniglotbot'
+f = bot.Factory(name='omniglotbot', protocol=bot.Client)
+
+class BotClient(internet.TCPClient):
+    
+    def startService(self):
+        rebuild.rebuild(bot)
+        service.Service.startService(self)
+        self._connection = self._getConnection()
+        self.running = 1
 
 botService = internet.TCPClient('localhost', 6667, f)
+#botService = BotClient('localhost', 6667, f)
 botService.setServiceParent(application)
 f.service = botService
-#f.service = application

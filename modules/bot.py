@@ -14,16 +14,17 @@ from twisted.python import log, rebuild
 from twisted.plugin import IPlugin, getPlugins
 import interfaces
 
+## Prevent endless caching of plugin behavior
+import sys
+sys.dont_write_bytecode = True
+
 class Client(irc.IRCClient):
     """ A simple wrapper around irc.IRCClient
     """
-    
-    def __init__(self):
-        self.gatherPlugins()
 
     def connectionMade(self):
         """Called when a connection is made"""
-        self.nick = self.factory.getNick()
+        self.setNick(self.factory.getNick())
         self.commandChar = self.factory.getCommandChar()
         irc.IRCClient.connectionMade(self)
 
@@ -33,7 +34,8 @@ class Client(irc.IRCClient):
     ## callbacks for events
     def signedOn(self):
         """Called when bot has succesfully signed on to server."""
-        [ self.join(channel) for channel in self.factory.channels ]
+        for channel in self.factory.getChannels():
+            self.join(channel)
         self.setNick(self.factory.getNick())
         self.startLoopers()
 
@@ -50,8 +52,6 @@ class Client(irc.IRCClient):
 
     def irc_RPL_NAMREPLY(self, prefix, reply):
         """This gets called when we get a reply to NAMES"""
-        #channel = reply[2]
-        #names = reply[3].split()
 
     #def userJoined(self, user, channel):
     #    """Called when a user joins a channel"""
@@ -77,33 +77,60 @@ class Client(irc.IRCClient):
         if replyTo == self.nickname:
             replyTo = user
 
+        if self.isCommand(msg):
+            return self.processCmd(msg, replyTo, user)
+        else:
+            return self.processMsg(msg, replyTo, user)
+
+    def processCmd(self, msg, replyTo, user):
+        cmd, args = self.parseCmd(msg)
+        if cmd is None:
+            return
+
+        if cmd == 'help':
+            return self.sendHelp(user, args)
+
+        self.gatherPlugins()
+
+        for plgn in self.cmdPlugins:
+            d = threads.deferToThread(plgn.gotCmd, replyTo, user, cmd, args)
+            d.addCallback(self.emit, replyTo, user)
+
+    def processMsg(self, msg, replyTo, user):
         self.gatherPlugins()
 
         for plgn in self.msgPlugins:
-            d = threads.deferToThread(plgn.gotMsg, msg)
-            d.addCallback(self.emit, replyTo)
-        
-        if self.isCommand(msg):
-            cmd, args = self.parseCmd(msg)
-            if cmd is None:
-                return
-            for plgn in self.cmdPlugins:
-                d = threads.deferToThread(plgn.gotCmd, cmd, args)
-                d.addCallback(self.emit, replyTo)
+            d = threads.deferToThread(plgn.gotMsg, replyTo, user, msg)
+            d.addCallback(self.emit, replyTo, user)
 
+    def sendHelp(self, user, args):
+        if len(args) == 0:
+            return self.sendGenericHelp(user)
+
+        self.gatherPlugins()
+        for cmd in args:
+            for plgn in self.cmdPlugins:
+                if plgn.providesCommand(cmd):
+                    d = threads.deferToThread(plgn.help, cmd)
+                    d.addCallback(self.emit, user)
+
+    def sendGenericHelp(self, user):
+        h = """Here are the commands I know about:"""
+        knownCommands = list()
+
+        self.gatherPlugins()
+        for plgn in self.cmdPlugins:
+            provides = plgn.provides()
+            if type(provides) != type(list()):
+                continue
+            knownCommands.extend(provides)
+        h += ", ".join(knownCommands) + ".\n"
+        h += "type help <command> to get help on individial commands.\n"
+        self.emit(h, user)
 
     def userjoined(self, user, channel, data):
         """This will get called when a user joins the channel"""
         print "{0} just joined!".format(user)
-
-    def emit(self, msg, dest):
-        if msg is None:
-            return
-        if msg.startswith('/me '):
-            msg = msg.replace('/me ', '')
-            self.me(dest, msg)
-        else:
-            self.msg(dest, msg)
 
     def action(self, user, replyTo, act):
         """This will get called when the bot sees someone do an action."""
@@ -115,8 +142,25 @@ class Client(irc.IRCClient):
         self.gatherPlugins()
 
         for plgn in self.actPlugins:
-            d = threads.deferToThread(plgn.gotAction, user, act)
-            d.addCallback(self.emit, replyTo)
+            d = threads.deferToThread(plgn.gotAction, replyTo, user, act, irc=self)
+            d.addCallback(self.emit, replyTo, user)
+
+    def emit(self, msg, dest, user=None):
+        if type(msg) == type(list()):
+            if len(msg) > 2:
+                dest = user
+            return [ self.emitString(line, dest) for line in msg ]
+        else:
+            return self.emitString(msg, dest)
+
+    def emitString(self, msg, dest):
+        if msg is None:
+            return
+        if msg.startswith('/me '):
+            msg = msg.replace('/me ', '')
+            self.describe(dest, msg)
+        else:
+            self.msg(dest, msg)
 
     def irc_NICK(self, prefix, params):
         """Called when an IRC user changes their nickname."""
@@ -124,7 +168,6 @@ class Client(irc.IRCClient):
         new_nick = params[0]
 
     def irc_INVITE(self, mask, where):
-        print "just got an invite"
         """Called when someone invites me to a channel"""
         (nick, channel) = where
         self.join(channel)
@@ -148,7 +191,7 @@ class Client(irc.IRCClient):
         """
         pass
 
-    def gatherPlugins(self):
+    def gatherPlugins(self, type=None):
         self.msgPlugins = getPlugins(interfaces.IMessageWatcher)
         self.cmdPlugins = getPlugins(interfaces.ICommandWatcher)
         self.actPlugins = getPlugins(interfaces.IActionWatcher)
@@ -156,15 +199,15 @@ class Client(irc.IRCClient):
     def isCommand(self, msg):
         if msg.startswith(self.commandChar):
             return True
-        elif msg.startswith(self.nick + ":"):
+        elif msg.startswith(self.nickname + ":"):
             return True
         else:
             return False
 
     def parseCmd(self, msg):
         
-        if msg.startswith(self.nick + ":"):
-            pattern = "{0}:".format(self.nick)
+        if msg.startswith(self.nickname + ":"):
+            pattern = "{0}:".format(self.nickname)
         elif msg.startswith(self.commandChar):
             pattern = self.commandChar
 
@@ -187,24 +230,27 @@ class Factory(protocol.ClientFactory):
     A new protocol instance will be created each time we connect to the server.
     """
 
-    def __init__(self):
-        self.protocol = Client
-        self.nick = 'defaultBot'
+    def __init__(self, name, protocol):
+        self.protocol = protocol
+        self.nickname = name
+        self.name = name
+        self.protocol.nickname = name
         self.commandChar = '?'
         self.channels = {}
 
     def getNick(self):
-        return self.nick
+        return self.nickname
 
     def reload(self):
-        print "got a reload..."
         reactor.callLater(5, self.service.startService)
         self.service.stopService()
-        print self.service
-        print self.channels
+        #self.service.connector = Factory()
 
     def getCommandChar(self):
         return self.commandChar
+
+    def getChannels(self):
+        return self.channels.keys()
 
     def clientConnectionLost(self, connector, reason):
         """If we get disconnected, reconnect to server."""
@@ -217,7 +263,3 @@ class Factory(protocol.ClientFactory):
 
     def addChannel(self, channel):
         self.channels[channel] = 1
-
-def usage(exitcode):
-    print "Usage: {0} [server]".format(sys.argv[0])
-    sys.exit(exitcode)
