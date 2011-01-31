@@ -3,7 +3,7 @@ from zope.interface import implements, classProvides
 from twisted.plugin import IPlugin
 
 from modules.interfaces import *
-import os, random, yaml
+import os, random
 
 class Disser(object):
     implements(IPlugin, ICommandWatcher)
