@@ -1,8 +1,11 @@
 from zope.interface import implements, classProvides
 from twisted.plugin import IPlugin
-
 from modules.interfaces import *
-import pymongo, re, time
+
+try:
+    import pymongo, re, time
+except ImportError:
+    pass
 
 class MongoLogger(object):
     implements(IPlugin, IMessageWatcher, ICommandWatcher)

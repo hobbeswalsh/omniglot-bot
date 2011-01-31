@@ -32,6 +32,15 @@ class Disser(object):
       "creates a profile for {0} on gothicmatch.com",
     ]
 
+    undirected = [
+    'looks around for something to diss.',
+    'steals your gpg keys.', 
+    'performs a hostile IRC takeover.',
+    'routes 1918 IP space.',
+    'shuts down your BGP sessions.',
+    'turns off the power in the office.',
+    'causes a server outage.'
+   ]
     def __init__(self):
         self.commands = { 'diss': self.doDiss }
 

@@ -8,6 +8,14 @@ class BeerDB(object):
     implements(IPlugin, ICommandWatcher)
 
     baseurl = "http://obdb-dev-hoke.apigee.com/"
+    prefixes = [
+        "/me feels like a ",
+        "how about a ",
+        "Yum... a delicious ",
+        "/me could use a ",
+        "/me is thinking about ",
+        "/me suggests ",
+    ]
 
     def __init__(self):
         self.commands = { 'beer': self.getBeer }
@@ -43,8 +51,9 @@ class BeerDB(object):
         j = json.loads(urllib2.urlopen(url).read())
         breweryName = j[0]['name']
 
-        ret = "Yum... a delicious {0} from {1}".format(beerName,breweryName)
-        return ret
+        ret = "{0} from {1}".format(beerName,breweryName)
+        print ret
+        return random.choice(self.prefixes) + ret
 
     def help(self, cmd):
         if cmd == 'beer':
