@@ -16,7 +16,7 @@ application.setComponent(ILogObserver, FileLogObserver(logfile).emit)
 
 f = bot.Factory(name='omniglotbot', protocol=bot.Client)
 
-botService = internet.TCPClient('localhost', 6667, f)
+botService = internet.TCPClient('irc.freenode.net', 6667, f)
 #botService = BotClient('localhost', 6667, f)
 botService.setServiceParent(application)
 f.service = botService
