@@ -8,15 +8,66 @@ from twisted.python.log import ILogObserver, FileLogObserver
 from twisted.python.logfile import DailyLogFile
 
 from modules import bot
+import ConfigParser, os
 
-logfile = DailyLogFile("./log/omni.log", ".")
+## edit this variable to use a different config file
+CONFIG = "~/.botrc"
+
+## you shouldn't have to edit this... edit ~/.botrc instead
+DEFAULT_NAME   = "omniglotbot"
+DEFAULT_SERVER = "localhost"
+DEFAULT_PORT   = 6667
+DEFAULT_LOG    = "bot.log"
+DEFAULT_LOGDIR = "/tmp"
 
 application = service.Application("bot")
-application.setComponent(ILogObserver, FileLogObserver(logfile).emit)
 
-f = bot.Factory(name='omniglotbot', protocol=bot.Client)
+#21         self.c = ConfigParser.ConfigParser()
+# 22         self.c.read(self.configFile)
+# 23         self.apiKey = self.findKey()
+# 24         if self.apiKey == None:
+# 25             return None
+# 26 
+# 27     def findKey(self):
+# 28         if not self.c.has_section(self.configSection):
+# 29             print "Can't find section {0} in file {1}".format(self.configSec    tion, self.configFile)
+# 30             return None
+# 31         if not self.c.has_option(self.configSection, self.configKey):
+# 32             print "Can't find key {0} in section {1} in file {2}".format(sel    f.configKey, self.configSection, self.configFile)
+# 33             return None
+# 34         return self.c.get('wordnik', 'apikey')
 
-botService = internet.TCPClient('irc.freenode.net', 6667, f)
-#botService = BotClient('localhost', 6667, f)
-botService.setServiceParent(application)
-f.service = botService
+def makeBot(conf):
+    application.setComponent(ILogObserver, FileLogObserver(logfile).emit)
+    f = bot.Factory(name=conf['name'], protocol=bot.Client)
+    botService = internet.TCPClient(conf['server'], int(conf['port']), f)
+    botService.setServiceParent(application)
+    f.service = botService
+
+def readConfig(file):
+    conf = { "server": DEFAULT_SERVER,
+             "port":   DEFAULT_PORT,
+             "name":   DEFAULT_NAME,
+             "log":    DEFAULT_LOG,
+             "logdir": DEFAULT_LOGDIR,
+           }
+    cp = ConfigParser.ConfigParser()
+    cp.read(os.path.expanduser(CONFIG))
+    if not cp.has_section('main'):
+        return conf
+    if cp.has_option('main', 'server'):
+        conf['server'] = cp.get('main', 'server')
+    if cp.has_option('main', 'port'):
+        conf['port'] = cp.get('main', 'port')
+    if cp.has_option('main', 'name'):
+        conf['name'] = cp.get('main', 'name')
+    if cp.has_option('main', 'logdir'):
+        conf['logdir'] = cp.get('main', 'logdir')
+    if cp.has_option('main', 'log'):
+        conf['log'] = cp.get('main', 'log')
+
+    return conf
+
+conf = readConfig(CONFIG)
+logfile = DailyLogFile(conf['log'], conf['logdir'])
+makeBot(conf)

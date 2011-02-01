@@ -26,14 +26,18 @@ class Monkey(object):
     ]
 
     undirected = [
-        "hides raisins about the premises.",
-        "swings from his simian tail.",
-        "goes 'eek eek!'",
+        "/me hides raisins about the premises.",
+        "/me swings from his simian tail.",
+        "/me goes 'eek eek!'",
+        "/me eats a banana.",
     ]
 
     directed = [
-        "flings poo at {0}.",
-        "shrieks at {0}.",
+        "/me flings poo at {0}.",
+        "/me shrieks at {0}.",
+        "/me picks lice from {0}'s hair.",
+        "/me gives {0} a banana.",
+        "/me smiles menacingly at {0}.",
     ]
 
 
@@ -61,12 +65,11 @@ class Monkey(object):
 
     def doMonkey(self, channel, user, args, irc=None):
         if len(args) == 0:
-            monkey = random.choice(self.undirected)
-            return "/me " + monkey
+            return random.choice(self.undirected)
 
         else:
             monkey = random.choice(self.directed)
-            return "/me " + monkey.format(" ".join(args))
+            return monkey.format(" ".join(args))
 
     def help(self, cmd):
         if cmd == 'monkey':
