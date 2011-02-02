@@ -10,8 +10,10 @@ class Wordnik(object):
     configFile    = os.path.expanduser('~/.botrc')
     configSection = 'wordnik'
     configKey     = 'apikey'
-    url = "http://api.wordnik.com/api"
-    key = "?api_key=9554cd51b3ae7593536040047c20e2ac3ce71b2fd01cf1a27"
+
+    url   = "http://api.wordnik.com/api"
+    key   = "?api_key=9554cd51b3ae7593536040047c20e2ac3ce71b2fd01cf1a27"
+    limit = "&limit=100"
 
     def __init__(self):
         self.commands = {
@@ -77,7 +79,7 @@ class Wordnik(object):
         ret = list()
         url = self.url + "/word.json"
         for word in args:
-            wordurl = url + "/{0}/phrases" + self.key
+            wordurl = url + "/{0}/phrases" + self.key + self.limit
             r = self.fetch(wordurl.format(word))
             if r is None:
                 continue
