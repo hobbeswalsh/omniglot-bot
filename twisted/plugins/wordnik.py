@@ -18,7 +18,9 @@ class Wordnik(object):
     def __init__(self):
         self.commands = {
                           'lookup': self.lookup,
+                          'define': self.lookup,
                           'bigram': self.bigram,
+                          'synonyms': self.thesaurus,
                           'thesaurus': self.thesaurus,
                         }
         self.c = ConfigParser.ConfigParser()
