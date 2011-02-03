@@ -11,14 +11,15 @@ class Wordnik(object):
     configSection = 'wordnik'
     configKey     = 'apikey'
 
-    url   = "http://api.wordnik.com/api"
+    url   = "http://api.wordnik.com/v4"
     key   = "?api_key=9554cd51b3ae7593536040047c20e2ac3ce71b2fd01cf1a27"
     limit = "&limit=100"
 
     def __init__(self):
         self.commands = {
                           'lookup': self.lookup,
-                          'bigram': self.bigram
+                          'bigram': self.bigram,
+                          'thesaurus': self.thesaurus,
                         }
         self.c = ConfigParser.ConfigParser()
         self.c.read(self.configFile)
@@ -74,6 +75,23 @@ class Wordnik(object):
             except:
                 continue
         return ret
+
+    def thesaurus(self, channel, user, args, irc=None):
+        found = list()
+        url = self.url + "/word.json"
+        type = "&type=synonym"
+        for word in args:
+            wordurl = url + "/{0}/related" + self.key + type + self.limit
+            r = self.fetch(wordurl.format(word))
+            if r is None:
+                continue
+            try:
+                words = json.loads(r)[0]['words']
+            except:
+                return None
+            found.append(", ".join(words).__str__())
+        return found
+
 
     def bigram(self, channel, user, args, irc=None):
         ret = list()
