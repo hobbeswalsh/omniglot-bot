@@ -39,7 +39,7 @@ class Wordnik(object):
         return self.c.get('wordnik', 'apikey')
 
     def gotMsg(self, channel, nick, msg, irc=None):
-        if random.randint(0,1000) > 990:
+        if random.randint(0,1000) < 990:
             return
         try:
             word = random.choice(msg.split())
