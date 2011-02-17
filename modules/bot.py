@@ -87,6 +87,9 @@ class Client(irc.IRCClient):
         if cmd == 'help':
             return self.sendHelp(user, args)
 
+        if cmd == 'restart':
+            return self.factory.service.stopService()
+
         self.gatherPlugins()
 
         for plgn in self.cmdPlugins:
