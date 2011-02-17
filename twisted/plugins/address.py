@@ -24,7 +24,7 @@ class Address(object):
 
     def getAddress(self, channel, user, args, irc=None):
         address = list()
-        address.append("195 E 4th Ave.")
+        address.append("195 E 4th Ave. (2nd floor)")
         address.append("San Mateo, CA 94401")
         address.append("...jerk")
         return address
