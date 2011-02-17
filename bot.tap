@@ -20,29 +20,14 @@ DEFAULT_PORT   = 6667
 DEFAULT_LOG    = "bot.log"
 DEFAULT_LOGDIR = "/tmp"
 
-application = service.Application("bot")
-
-#21         self.c = ConfigParser.ConfigParser()
-# 22         self.c.read(self.configFile)
-# 23         self.apiKey = self.findKey()
-# 24         if self.apiKey == None:
-# 25             return None
-# 26 
-# 27     def findKey(self):
-# 28         if not self.c.has_section(self.configSection):
-# 29             print "Can't find section {0} in file {1}".format(self.configSec    tion, self.configFile)
-# 30             return None
-# 31         if not self.c.has_option(self.configSection, self.configKey):
-# 32             print "Can't find key {0} in section {1} in file {2}".format(sel    f.configKey, self.configSection, self.configFile)
-# 33             return None
-# 34         return self.c.get('wordnik', 'apikey')
-
 def makeBot(conf):
+    application = service.Application("bot")
     application.setComponent(ILogObserver, FileLogObserver(logfile).emit)
     f = bot.Factory(name=conf['name'], protocol=bot.Client)
     botService = internet.TCPClient(conf['server'], int(conf['port']), f)
     botService.setServiceParent(application)
     f.service = botService
+    return application
 
 def readConfig(file):
     conf = { "server": DEFAULT_SERVER,
@@ -70,4 +55,4 @@ def readConfig(file):
 
 conf = readConfig(CONFIG)
 logfile = DailyLogFile(conf['log'], conf['logdir'])
-makeBot(conf)
+application = makeBot(conf)
