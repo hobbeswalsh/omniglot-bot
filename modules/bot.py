@@ -19,9 +19,6 @@ class Client(irc.IRCClient):
     """ A simple wrapper around irc.IRCClient
     """
 
-    def __init__(self):
-        self.lineRate = None
-
     def connectionMade(self):
         """Called when a connection is made"""
         self.setNick(self.factory.getNick())
@@ -147,17 +144,14 @@ class Client(irc.IRCClient):
 
     def emit(self, msg, dest, user=None):
         if type(msg) == type(list()):
-            if len(msg) > 10:
+            if len(msg) > 3:
                 dest = user
-                threads.deferToThread(self.emitSlowly, msg, dest)
-            if len(msg) > 2:
-                dest = user
+                return threads.deferToThread(self.emitSlowly, msg, dest)
             return [ self.emitString(line, dest) for line in msg ]
         else:
             return self.emitString(msg, dest)
 
     def emitSlowly(self, msg, dest):
-        print "emitting slowly!"
         for line in msg:
             self.emitString(line, dest)
             time.sleep(1)
