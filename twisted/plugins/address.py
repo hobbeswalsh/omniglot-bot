@@ -60,10 +60,7 @@ class Address(object):
         address = list()
         address.append("195 E 4th Ave. (2nd floor)")
         address.append("San Mateo, CA 94401")
-        insult = [ choice(l) for l in (self.p1, self.p2, self.p3) ]
-        insult_1 = choice(self.insult_p1)
-        insult_2 = choice(self.insult_p2)
-        insult_3 = choice(self.insult_p3)
+        insult = [ choice(i) for i in (self.p1, self.p2, self.p3) ]
         address.append("...thou " + ", ".join(insult))
         return address
 
