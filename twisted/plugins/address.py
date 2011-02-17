@@ -7,7 +7,7 @@ from random import choice
 class Address(object):
     implements(IPlugin, ICommandWatcher)
 
-    insult_p1 = ['artless', 'bawdy', 'beslubbering', 'bootless', 'churlish',
+    p1 = ['artless', 'bawdy', 'beslubbering', 'bootless', 'churlish',
     'cockered', 'clouted', 'craven', 'currish', 'dankish', 'dissembling', 
     'droning', 'errant', 'fawning', 'fobbing', 'froward', 'frothy', 
     'gleeking', 'goatish', 'gorbellied', 'impertinent', 'infectious', 
@@ -17,7 +17,7 @@ class Address(object):
     'tottering', 'unmuzzled', 'vain', 'venomed', 'villainous', 'warped',
     'wayward', 'weedy', 'yeasty']
 
-    insult_p2 = ['base-court', 'bat-fowling','beef-witted','beetle-headed', 
+    p2 = ['base-court', 'bat-fowling','beef-witted','beetle-headed', 
     'boil-brained', 'clapper-clawed', 'clay-brained', 'common-kissing', 
     'crook-pated', 'dismal-dreaming', 'dizzy-eyed', 'doghearted', 
     'dread-bolted', 'earth-vexing', 'elf-skinned', 'fat-kidneyed', 
@@ -30,7 +30,7 @@ class Address(object):
     'spur-galled', 'swag-bellied', 'tardy-gaited', 'tickle-brained', 
     'toad-spotted', 'unchin-snouted', 'weather-bitten']
 
-    insult_p3 = ['apple-john', 'baggage', 'barnacle', 'bladder','boar-pig', 
+    p3 = ['apple-john', 'baggage', 'barnacle', 'bladder','boar-pig', 
     'bugbear', 'bum-bailey', 'canker-blossom', 'clack-dish', 'clotpole', 
     'coxcomb', 'codpiece', 'death-token', 'dewberry', 'flap-dragon', 
     'flax-wench', 'flirt-gill', 'foot-licker', 'fustilarian', 'giglet', 
@@ -60,7 +60,7 @@ class Address(object):
         address = list()
         address.append("195 E 4th Ave. (2nd floor)")
         address.append("San Mateo, CA 94401")
-        insult = [ choice(l) for l in (insult_p1, insult_p2, insult_p3) ]
+        insult = [ choice(l) for l in (self.p1, self.p2, self.p3) ]
         insult_1 = choice(self.insult_p1)
         insult_2 = choice(self.insult_p2)
         insult_3 = choice(self.insult_p3)
