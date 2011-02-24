@@ -7,8 +7,7 @@ import random
 class Harasser(object):
     implements(IPlugin, ICommandWatcher)
 
-    onjoins =
-      {
+    onjoins = {
         "robovoyo":
           [ "beep boop beep beep boop",
             "/me hums a song in 7/4",
