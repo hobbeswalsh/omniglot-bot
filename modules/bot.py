@@ -50,9 +50,13 @@ class Client(irc.IRCClient):
     def irc_RPL_NAMREPLY(self, prefix, reply):
         """This gets called when we get a reply to NAMES"""
 
-    #def userJoined(self, user, channel):
-    #    """Called when a user joins a channel"""
-    #    self.names(channel)
+    def userJoined(self, user, channel):
+        """Called when a user joins a channel"""
+        self.names(channel)
+        self.gatherPlugins()
+        for plgn in self.ircPlugins:
+            d = threads.deferToThread(plgn.gotJoin,channel,user)
+            d.addCallback(self.emit, channel, user)
 
     #def userLeft(self, user, channel):
     #    """Called when a user leaves a channel"""
@@ -201,6 +205,7 @@ class Client(irc.IRCClient):
         self.msgPlugins = getPlugins(interfaces.IMessageWatcher)
         self.cmdPlugins = getPlugins(interfaces.ICommandWatcher)
         self.actPlugins = getPlugins(interfaces.IActionWatcher)
+        self.ircPlugins = getPlugins(interfaces.IIRCWatcher)
 
     def isCommand(self, msg):
         if msg.startswith(self.commandChar):
