@@ -7,15 +7,16 @@ import random
 class Harasser(object):
     implements(IPlugin, ICommandWatcher)
 
-    onjoins = {
+    onjoins =
+      {
         "robovoyo":
           [ "beep boop beep beep boop",
             "/me hums a song in 7/4",
-            "anyone want to get a sandwich as big as your head?", ]
+            "anyone want to get a sandwich as big as your head?", ],
         "hobbeswalsh":
           [ "/me flexes his Python",
-            "the mail server broke again.", ]
-              }
+            "the mail server broke again.", ],
+      }
 
     def gotJoin(self, channel, user):
         if user in self.onjoins:
