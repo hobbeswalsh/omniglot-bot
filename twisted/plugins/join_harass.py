@@ -5,7 +5,7 @@ from modules.interfaces import *
 import random
 
 class Harasser(object):
-    implements(IPlugin, ICommandWatcher)
+    implements(IPlugin, IIRCWatcher)
 
     onjoins = {
         "robovoyo":
