@@ -31,6 +31,7 @@ class Better(object):
         if len(terms) <= 1:
             return None
         for term in terms:
+            term = term.replace(" ", "+")
             u = url + term
             j = json.loads(urllib2.urlopen(u).read())
             sucks, rocks = j['sucks'], j['rocks']
