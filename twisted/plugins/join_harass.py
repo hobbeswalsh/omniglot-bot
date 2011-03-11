@@ -11,9 +11,19 @@ class Harasser(object):
         "robovoyo":
           [ "beep boop beep beep boop",
             "/me hums a song in 7/4",
+            "/me pantomimes a rock dummer.",
             "anyone want to get a sandwich as big as your head?", ],
+        "tonytam":
+          [ "folks, bouncing beta again.",
+            "/me writes an undocumented API.",
+            "/me breaks the Ivy config and doesn't tell anyone.",
+            "/me goes and gets a mint from the bucket.", ],
+        "esperluette":
+          [ "/me defines some insanely obscure word without batting an eye",
+            "/me writes a blog post about a dress.", ],
         "hobbeswalsh":
           [ "/me flexes his Python",
+            "/me takes off his dorky Velcro bike shoes.",
             "the mail server broke again.", ],
       }
 
