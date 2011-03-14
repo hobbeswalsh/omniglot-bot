@@ -11,7 +11,7 @@ class Harasser(object):
         "robovoyo":
           [ "beep boop beep beep boop",
             "/me hums a song in 7/4",
-            "/me pantomimes a rock dummer.",
+            "/me pantomimes a rock drummer.",
             "anyone want to get a sandwich as big as your head?", ],
         "tonytam":
           [ "folks, bouncing beta again.",
