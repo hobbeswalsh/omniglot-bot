@@ -20,7 +20,13 @@ class Harasser(object):
             "/me goes and gets a mint from the bucket.", ],
         "esperluette":
           [ "/me defines some insanely obscure word without batting an eye",
+            "/me gives a TED talk.",
             "/me writes a blog post about a dress.", ],
+        "zeke_sikelianos":
+          [ "/me writes some Ruby.",
+            "How do you guys like the new landing page?",
+            "/me talks about colors for a little while.",
+            "/me cat-sits in Paris.", ],
         "hobbeswalsh":
           [ "/me flexes his Python",
             "/me takes off his dorky Velcro bike shoes.",
