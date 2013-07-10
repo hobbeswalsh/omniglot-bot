@@ -7,15 +7,16 @@ An IRC bot that must be instantiated with a brain (see modules/brain.py)
 
 # twisted imports
 from twisted.words.protocols import irc
-from twisted.internet import reactor, protocol, threads, defer
+from twisted.internet import reactor, protocol, threads
 from twisted.internet.task import LoopingCall
-from twisted.python import log, rebuild
-
-from twisted.plugin import IPlugin, getPlugins
-import interfaces, time
+from twisted.python import log
+from twisted.plugin import getPlugins
+import interfaces
+import time
 
 
 class Client(irc.IRCClient):
+
     """ A simple wrapper around irc.IRCClient
     """
 
@@ -25,10 +26,12 @@ class Client(irc.IRCClient):
         self.commandChar = self.factory.getCommandChar()
         irc.IRCClient.connectionMade(self)
 
+        log.startLogging(open('/tmp/bot_chatter.log', 'a'))
+
     def connectionLost(self, reason):
         """Called when a connection is lost"""
 
-    ## callbacks for events
+    # callbacks for events
     def signedOn(self):
         """Called when bot has succesfully signed on to server."""
         for channel in self.factory.getChannels():
@@ -36,9 +39,13 @@ class Client(irc.IRCClient):
         self.setNick(self.factory.getNick())
         self.startLoopers()
 
+    def join(self, channel, key=None):
+        self.joined(channel)
+        irc.IRCClient.join(self, channel)
+
     def joined(self, channel, *args):
         """This will get called when the bot joins the channel."""
-        self.factory.addChannel( channel )
+        self.factory.addChannel(channel)
 
     def names(self, channel):
         """Send a NAMES request to a channel"""
@@ -55,14 +62,14 @@ class Client(irc.IRCClient):
         self.names(channel)
         self.gatherPlugins()
         for plgn in self.ircPlugins:
-            d = threads.deferToThread(plgn.gotJoin,channel,user)
+            d = threads.deferToThread(plgn.gotJoin, channel, user)
             d.addCallback(self.emit, channel, user)
 
-    #def userLeft(self, user, channel):
+    # def userLeft(self, user, channel):
     #    """Called when a user leaves a channel"""
     #    self.names(channel)
 
-    #def userRenamed(self, oldname, newname):
+    # def userRenamed(self, oldname, newname):
     #    """Called when a user changes nick???"""
     #    self.names(channel)
 
@@ -93,6 +100,13 @@ class Client(irc.IRCClient):
 
         if cmd == 'restart':
             return self.factory.service.stopService()
+
+        if cmd == 'leave':
+            self.emit('*sniff*', replyTo)
+            self.leave(replyTo)
+
+        if cmd == 'join':
+            self.join(args[0])
 
         self.gatherPlugins()
 
@@ -125,7 +139,7 @@ class Client(irc.IRCClient):
         self.gatherPlugins()
         for plgn in self.cmdPlugins:
             provides = plgn.provides()
-            if type(provides) != type(list()):
+            if not isinstance(provides, type(list())):
                 continue
             knownCommands.extend(provides)
         h += ", ".join(knownCommands) + ".\n"
@@ -146,15 +160,16 @@ class Client(irc.IRCClient):
         self.gatherPlugins()
 
         for plgn in self.actPlugins:
-            d = threads.deferToThread(plgn.gotAction, replyTo, user, act, irc=self)
+            d = threads.deferToThread(
+                plgn.gotAction, replyTo, user, act, irc=self)
             d.addCallback(self.emit, replyTo, user)
 
     def emit(self, msg, dest, user=None):
-        if type(msg) == type(list()):
+        if isinstance(msg, type(list())):
             if len(msg) > 3:
                 dest = user
                 return threads.deferToThread(self.emitSlowly, msg, dest)
-            return [ self.emitString(line, dest) for line in msg ]
+            return [self.emitString(line, dest) for line in msg]
         else:
             return self.emitString(msg, dest)
 
@@ -172,22 +187,15 @@ class Client(irc.IRCClient):
         else:
             self.msg(dest, msg)
 
-    def irc_NICK(self, prefix, params):
-        """Called when an IRC user changes their nickname."""
-        old_nick = prefix.split('!')[0]
-        new_nick = params[0]
+    # def irc_NICK(self, prefix, params):
+    #     """Called when an IRC user changes their nickname."""
+    #     old_nick = prefix.split('!')[0]
+    #     new_nick = params[0]
 
-    def irc_INVITE(self, mask, where):
-        """Called when someone invites me to a channel"""
-        (nick, channel) = where
-        self.join(channel)
-        self.joined(channel)
-        self.msg(channel, "Thanks, {0}!".format(mask.split('!')[0]))
-
-    ## maintenance callback
+    # maintenance callback
     def irc_PING(self, prefix, params):
         """Called when we get PINGed. Maybe."""
-        ### ...aand, the pong (forgot this earlier)
+        # ...aand, the pong (forgot this earlier)
         self.sendLine("PONG %s" % params[-1])
 
     def startLoopers(self):
@@ -216,7 +224,7 @@ class Client(irc.IRCClient):
             return False
 
     def parseCmd(self, msg):
-        
+
         if msg.startswith(self.nickname + ":"):
             pattern = "{0}:".format(self.nickname)
         elif msg.startswith(self.commandChar):
@@ -230,12 +238,13 @@ class Client(irc.IRCClient):
         else:
             args = []
         if cmd == "reload":
-           self.factory.reload()
-           return None, None
+            self.factory.reload()
+            return None, None
         return (cmd, args)
 
 
 class Factory(protocol.ClientFactory):
+
     """
     A factory for IRC Clients.
     A new protocol instance will be created each time we connect to the server.
@@ -247,7 +256,7 @@ class Factory(protocol.ClientFactory):
         self.name = name
         self.protocol.nickname = name
         self.commandChar = '?'
-        self.channels = {}
+        self.channels = set()
 
     def getNick(self):
         return self.nickname
@@ -255,22 +264,22 @@ class Factory(protocol.ClientFactory):
     def reload(self):
         reactor.callLater(5, self.service.startService)
         self.service.stopService()
-        #self.service.connector = Factory()
+        # self.service.connector = Factory()
 
     def getCommandChar(self):
         return self.commandChar
 
     def getChannels(self):
-        return self.channels.keys()
+        return self.channels
 
     def clientConnectionLost(self, connector, reason):
         """If we get disconnected, reconnect to server."""
         pass
-        #connector.connect()
+        # connector.connect()
 
     def clientConnectionFailed(self, connector, reason):
         print "connection failed:", reason
         reactor.stop()
 
     def addChannel(self, channel):
-        self.channels[channel] = 1
+        self.channels.add(channel)

@@ -1,13 +1,17 @@
 # twisted imports
 from zope.interface import Interface
 
+
 class IMessageWatcher(Interface):
+
     """Watches all messages that come through the bot"""
 
     def gotMsg(channel, user, msg, irc=None):
         """We got a message"""
 
+
 class ICommandWatcher(Interface):
+
     """Watches all commands that come through the bot"""
 
     def help():
@@ -22,13 +26,17 @@ class ICommandWatcher(Interface):
     def gotCmd(channel, user, cmd, args, irc=None):
         """We got a command"""
 
+
 class IActionWatcher(Interface):
+
     """Watches all actions that come through the bot"""
 
     def gotAction(channel, user, action, irc=None):
         """We got an action"""
 
+
 class IIRCWatcher(Interface):
+
     """Watches all IRC events that come through the bot"""
 
     def gotPart(channel, user, irc=None):

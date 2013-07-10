@@ -1,26 +1,23 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
-# twisted imports
 from twisted.application import internet, service
-from twisted.python import rebuild
 from twisted.python.log import ILogObserver, FileLogObserver
 from twisted.python.logfile import DailyLogFile
 
 from modules import bot
-import ConfigParser, os
 
-## edit this variable to use a different config file
+# edit this variable to use a different config file
 CONFIG = "~/.botrc"
 
-## you shouldn't have to edit this... edit ~/.botrc instead
-DEFAULT_NAME   = "omniglotbot"
-DEFAULT_SERVER = "localhost"
-DEFAULT_PORT   = 6667
-DEFAULT_LOG    = "bot.log"
+# you shouldn't have to edit this... edit ~/.botrc instead
+DEFAULT_NAME = "omniglotbot"
+DEFAULT_SERVER = "irc.amazon.com"
+DEFAULT_PORT = 6667
+DEFAULT_LOG = "bot.log"
 DEFAULT_LOGDIR = "/tmp"
 
-def makeBot(conf):
+
+def makeBot(conf, logfile):
     application = service.Application("bot")
     application.setComponent(ILogObserver, FileLogObserver(logfile).emit)
     f = bot.Factory(name=conf['name'], protocol=bot.Client)
@@ -29,30 +26,16 @@ def makeBot(conf):
     f.service = botService
     return application
 
-def readConfig(file):
-    conf = { "server": DEFAULT_SERVER,
-             "port":   DEFAULT_PORT,
-             "name":   DEFAULT_NAME,
-             "log":    DEFAULT_LOG,
-             "logdir": DEFAULT_LOGDIR,
-           }
-    cp = ConfigParser.ConfigParser()
-    cp.read(os.path.expanduser(CONFIG))
-    if not cp.has_section('main'):
-        return conf
-    if cp.has_option('main', 'server'):
-        conf['server'] = cp.get('main', 'server')
-    if cp.has_option('main', 'port'):
-        conf['port'] = cp.get('main', 'port')
-    if cp.has_option('main', 'name'):
-        conf['name'] = cp.get('main', 'name')
-    if cp.has_option('main', 'logdir'):
-        conf['logdir'] = cp.get('main', 'logdir')
-    if cp.has_option('main', 'log'):
-        conf['log'] = cp.get('main', 'log')
 
+def readConfig(file):
+    conf = {"server": DEFAULT_SERVER,
+            "port":   DEFAULT_PORT,
+            "name":   DEFAULT_NAME,
+            "log":    DEFAULT_LOG,
+            "logdir": DEFAULT_LOGDIR,
+            }
     return conf
 
 conf = readConfig(CONFIG)
 logfile = DailyLogFile(conf['log'], conf['logdir'])
-application = makeBot(conf)
+application = makeBot(conf, logfile)
