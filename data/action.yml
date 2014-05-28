@@ -114,7 +114,6 @@ urlroll:
         - http://www.urbandictionary.com/define.php?term=alabama+hot+pocket
         - http://www.youtube.com/watch?v=MHrvpgA9XtI
         - http://bacolicio.us/TARGET
-        - http://starttoday.corp.yahoo.com/cgi-bin/snark.pl?which=corn&url=TARGET
 monkey:
     directed:
         - gives TARGET a banana.
