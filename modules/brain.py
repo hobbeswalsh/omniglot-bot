@@ -213,7 +213,7 @@ class DNSBot(object):
                 args = [ url ]
 
                 ## spacial handling for special urls
-                if ( 'bug.corp.yahoo.com' in url 
+                if ( 'XXXplaceholderXXX' in url 
                   and 'id=' in url
                   and 'show_bug.cgi' in url):
                     cmd = 'bug'
@@ -224,10 +224,10 @@ class DNSBot(object):
                         args = [ url ]
                     else:
                         args = [ m.groups()[0] ]
-                if 'eportal.corp.yahoo.com' in url:
+                if 'XXXplaceholderXXX' in url:
                     cmd = 'siebel'
                     args = [ url.split('=')[-1] ]
-                if 'cm.ops.yahoo.com' in url:
+                if 'XXXplaceholderXXX' in url:
                     cm_re = re.compile('.*cmr_id/([0-9]+)|.*cmr_id=([0-9]+)')
                     m = cm_re.match(url)
                     if m is None:
